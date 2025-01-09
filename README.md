@@ -213,5 +213,143 @@ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 
 ##### In essence, configuring the AWS CLI allows you to interact with AWS services via the command line, while integrating access keys into SDKs empowers your applications to communicate with AWS programmatically using your IAM user’s credentials. These steps ensure a seamless bridge between your local environment and the vast capabilities of AWS.
 
+##### Once you have the access keys, we are now ready to add them in Jenkins but we can do it only one at a time, so first of all we want to specify our AWS Access Key. So click again on “Add Credentials” and as kind select “Secret text”. It will ask you for a Secret and an ID. In ID specify “AWS_ACCESS_KEY_ID” and in Secret paste your AWS Access Key.
+
+![image](https://github.com/user-attachments/assets/bb1924f8-1a0f-48dd-b1b4-9404d1093e6a)
+
+##### Once you’re done, click again on “Add Credentials” and do the same for your AWS Secret Key. In ID type “AWS_SECRET_ACCESS_KEY”:
+
+Once you’re done, click again on “Add Credentials” and do the same for your AWS Secret Key. In ID type “AWS_SECRET_ACCESS_KEY”:
+
+![image](https://github.com/user-attachments/assets/c3b73354-3149-4b6e-b91f-c189d8a469f6)
+
+##### Now all the credentials are set up:
+
+![image](https://github.com/user-attachments/assets/7801e287-8902-49f8-851e-5f160f3a09b4)
+
+## Step 4: Jenkins pipeline
+
+##### Here I will explain the other folder “2-terraform-eks-deployment”, that we have not discussed about yet and also the folder “kubernetes”.
+
+##### We want to create an Elastic Kubernetes Service (EKS) cluster and deploy Kubernetes manifest files inside it using Jenkins.
+
+##### First we start from “2-terraform-eks-deployment”.
+
+##### In “backend.tf” we configure the same backend as before, it just changes the key
+
+##### In “eks.tf” we are defining a module to create an EKS cluster. We are using the same VPC we created earlier. The source is a module published in the Terraform registry, if you are curious and want to see what it does go and check it out on:
+
+##### It is widely used and it will basically create several resources for us, such as EKS nodes and a Load Balancer. This one is important because we will be able to access to our application through the Load Balancer DNS name.
+
+##### In “vpc.tf” we specify the VPC with a module but again we take the code from a module of the Terraform registry, so we don’t create it from scratch
+
+##### And then in “variables.tf” and “terraform.tfvars” we specify the ranges of IP addresses that the VPC and the subnets can take
+
+##### In the root folder there is a Jenkinsfile written in Groovy. This is the main file that Jenkins will use to do the deployment process for us in stages. So we will not need to deploy ourselves with the usual Terraform commands, but the Jenkins server will do that for us, as you can also see from the Jenkinsfile.
+
+##### As you can see, we have two stages.
+
+##### In the first stage, it initializes and applies a Terraform configuration to create an EKS cluster.
+
+##### In the second stage, it updates the kubeconfig with the EKS cluster information and applies Kubernetes YAML files (nginx-deployment.yaml and nginx-service.yaml) to deploy Nginx to the EKS cluster. These two files are located in the “kubernetes” folder.
+
+##### So, in nginx-deployment.yamlit is described a Kubernetes deployment for deploying a simple Nginx web server
+
+##### In nginx-service.yaml instead we are setting up a Kubernetes Service for exposing the Nginx deployment
+
+##### **Again:** we do not have to run the usual Terraform commands to deploy this code, because Jenkins will do that for us. We will host this code in a GitHub repository and then Jenkins will connect to it and pull it down following the deployment process described in the Jenkinsfile.
+
+## Step 5: Create a GitHub repository
+
+##### So Jenkins need to access to this code to do the deployment for us, so create a new GitHub repository and name it “my-jenkins-pipeline” or call it whatever you want. Leave it public and do not add a README.md file.
+
+##### Then pull down the repository with “git clone” and move the following files to the cloning folder:
+
+##### Jenkinsfile
+
+##### The folder “2-terraform-eks-deployment”
+
+##### The folder “kubernetes”
+
+#####Then push your changes to the main branch
+
+## Step 6: create a Jenkins pipeline
+
+#####On the Jenkins homepage, click on “New Item” on the left.
+
+![image](https://github.com/user-attachments/assets/e888d29f-0212-4790-a807-e852d74c8b81)
+
+##### Then select “Pipeline” and give it a name, I call it jenkins-pipeline.
+
+![image](https://github.com/user-attachments/assets/ef80f5ba-2cf1-41d9-9d7c-1e83e40d2a01)
+
+##### Click OK and then scroll to the bottom of the page and under Pipeline select “Pipeline script from SCM” and as SCM choose “Git” and then you want to give your GitHub Repository URL and select the credentials we defined before.
+
+![image](https://github.com/user-attachments/assets/a8cd6ec9-c212-44f6-9176-52e25dcf63cc)
+
+##### In branch, specify */main instead of */master.
+
+![image](https://github.com/user-attachments/assets/f08b02c2-a2e4-42ed-95ff-7c12ac2063bf)
+
+##### Then click on Save.
+
+##### Now that it is all set it up we just need to run it by clicking on “Build Now” on the left.
+
+![image](https://github.com/user-attachments/assets/8ba333c7-b054-4b41-a9d3-2bed6e8cec11)
+
+##### You will see the process of creation and deployment defined with the two stages that we have defined before in the code. Jenkins will take about 10–15 minutes to create the EKS cluster.
+
+![image](https://github.com/user-attachments/assets/bd36ad5f-5ac1-4328-a2af-2866e72213c5)
+
+##### In the bottom-left in “Build History” you should see your build running, if you click on it and then click on “Console output” in the menu on the left you should see the logs and you can see that it is creating several resources, and you can follow all the process.
+
+![image](https://github.com/user-attachments/assets/917369c7-4455-485b-b4f0-81f3b2c74142)
+
+![image](https://github.com/user-attachments/assets/af9f398e-a59e-473c-8fd6-fbba343b2ef3)
+
+![image](https://github.com/user-attachments/assets/d738faac-9e47-4795-accc-4c2d134e0818)
+
+##### Now wait until the whole deployment process is finished. 
+
+## Step 7: Test the application
+
+##### Alright! Now it’s time to test the application. In the AWS management console go to the “Elastic Kubernetes Service” and you should see that the cluster is running:
+
+![image](https://github.com/user-attachments/assets/183f48d5-efd2-4bf5-9f22-26c6b528b93f)
+
+##### If you go to the tab “Resources” you can see what resources it has created (Pods, Deployment, ..).
+
+![image](https://github.com/user-attachments/assets/3bd7721d-f3e9-4699-b431-5e0709217002)
+
+![image](https://github.com/user-attachments/assets/de470017-2833-4b51-b718-dd3356fdeca8)
+
+##### If you don’t see them, there should be a message above that says that your user doesn’t have the permissions to get Kubernetes objects. Click on “Learn more” and follow the guide to grant the access to your resources. Anyway, this is just to see what happens behind the scenes.
+
+##### Now, if you go to the “EC2” AWS service and select “Load balancers” you should see the Application Load Balancer created by Kubernetes:
+
+![image](https://github.com/user-attachments/assets/93e5a1c6-8741-4c81-9270-3f677922f6fe)
+
+##### If you click on it you can see its DNS name:
+
+![image](https://github.com/user-attachments/assets/5507947c-1cf7-442e-9e82-601990f9a542)
+
+#####Copy it and navigate to it in a new tab and you should see the Nginx welcome page:
+
+![image](https://github.com/user-attachments/assets/99b0205c-2847-4c07-9702-59c2bade4218)
+
+
+## Step 8: Clean up the resources
+
+##### Now I will show you how to delete all the resources.
+
+##### Go to the “2-terraform-eks-deployment” folder in your project and run:
+
+terraform init
+
+terraform destroy -auto-approve
+
+##### Now go to the “1-terraform-jenkins-server” and run:
+
+terraform destroy -auto-approve
 
 
