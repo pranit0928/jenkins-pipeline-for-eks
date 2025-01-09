@@ -14,12 +14,6 @@
 
 ##### In your project folder you can follow the structure of the code of my repository, you can also directly fork the repository if you prefer
 
-##### The structure is the following:
-
-![image](https://github.com/user-attachments/assets/93a59b50-939b-4589-af54-5d9c766fb2a0)
-
-##### Now I will dive in and explain the content each folder.
-
 ## Step 3: setup Jenkins server
 
 ##### Here I will explain what the code inside “1-terraform-jenkins-server” does.
