@@ -213,8 +213,6 @@ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 
 ##### Once you’re done, click again on “Add Credentials” and do the same for your AWS Secret Key. In ID type “AWS_SECRET_ACCESS_KEY”:
 
-Once you’re done, click again on “Add Credentials” and do the same for your AWS Secret Key. In ID type “AWS_SECRET_ACCESS_KEY”:
-
 ![image](https://github.com/user-attachments/assets/c3b73354-3149-4b6e-b91f-c189d8a469f6)
 
 ##### Now all the credentials are set up:
@@ -265,11 +263,11 @@ Once you’re done, click again on “Add Credentials” and do the same for you
 
 ##### The folder “kubernetes”
 
-#####Then push your changes to the main branch
+##### Then push your changes to the main branch
 
 ## Step 6: create a Jenkins pipeline
 
-#####On the Jenkins homepage, click on “New Item” on the left.
+##### On the Jenkins homepage, click on “New Item” on the left.
 
 ![image](https://github.com/user-attachments/assets/e888d29f-0212-4790-a807-e852d74c8b81)
 
